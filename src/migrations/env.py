@@ -15,6 +15,7 @@ sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 # access to the values within the .ini file in use.
 config = context.config
 from src.database.session import Base
+from src.database.models.user import UserModel
 
 config.set_main_option("sqlalchemy.url", f"{settings.db.DATABASE_URL}?async_fallback=True")
 

@@ -1,0 +1,2 @@
+class ErrorUserRegister(Exception):
+    pass
