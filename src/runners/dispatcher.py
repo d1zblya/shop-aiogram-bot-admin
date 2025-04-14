@@ -1,5 +1,7 @@
 from aiogram import Dispatcher
 
+from src.callbacks.admin_check_users import admin_check_users
+from src.handlers.admin_commands import admin_command_router
 from src.handlers.start import start_router
 
 
@@ -13,7 +15,9 @@ def _setup_inner_middlewares(dispatcher: Dispatcher) -> None:
 
 def _setup_routers(dispatcher: Dispatcher) -> None:
     dispatcher.include_routers(
-        start_router
+        start_router,
+        admin_check_users,
+        admin_command_router,
     )
 
 

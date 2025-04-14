@@ -1,6 +1,6 @@
 from src.database.dao.user_dao import UserDAO
 from src.database.session import async_session_maker
-from src.exceptions.exceptions_user import ErrorUserRegister
+from src.exceptions.exceptions_user import ErrorUserRegister, CannotFindAllUsers
 from src.schemas.user import User
 
 from loguru import logger
@@ -25,3 +25,15 @@ class UserService:
                 msg = f"Error in user registration: {str(e)}"
                 logger.error(msg)
                 raise ErrorUserRegister(msg)
+
+    @classmethod
+    async def get_all_users(cls):
+        async with async_session_maker() as session:
+            try:
+                users = await UserDAO.find_all(session)
+                logger.success(f"successfully found {len(users)} users")
+                return users
+            except Exception as e:
+                msg = f"Cannot find all users: {str(e)}"
+                logger.error(msg)
+                raise CannotFindAllUsers(msg)
