@@ -31,7 +31,7 @@ class UserService:
         async with async_session_maker() as session:
             try:
                 users = await UserDAO.find_all(session)
-                logger.success(f"successfully found {len(users)} users")
+                logger.success(f"Successfully found {len(users)} users")
                 return users
             except Exception as e:
                 msg = f"Cannot find all users: {str(e)}"

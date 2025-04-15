@@ -16,6 +16,8 @@ sys.path.insert(0, dirname(dirname(dirname(abspath(__file__)))))
 config = context.config
 from src.database.session import Base
 from src.database.models.user import UserModel
+from src.database.models.category import CategoryModel
+from src.database.models.product import ProductModel
 
 config.set_main_option("sqlalchemy.url", f"{settings.db.DATABASE_URL}?async_fallback=True")
 

@@ -3,6 +3,7 @@ from aiogram import Router, F
 from aiogram.filters import CommandStart
 
 from src.filters.is_admin import IsAdmin
+from src.keyboards.inline import admin_main_kd
 from src.schemas.user import User
 from src.services.service_user import UserService
 
@@ -11,7 +12,7 @@ start_router = Router(name="Start router")
 
 @start_router.message(CommandStart(), IsAdmin())
 async def start_admin_handler(message: Message):
-    await message.answer(text="Привет, Админ!")
+    await message.answer(text="Привет, Админ!", reply_markup=admin_main_kd)
 
 
 @start_router.message(CommandStart())
