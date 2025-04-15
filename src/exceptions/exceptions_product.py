@@ -1,0 +1,2 @@
+class CannotFindAllProducts(Exception):
+    pass
