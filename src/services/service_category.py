@@ -8,7 +8,7 @@ from src.schemas.category import Category
 
 class CategoryService:
     @classmethod
-    async def get_all_categories(cls):
+    async def get_all_categories(cls) -> list[Category]:
         async with async_session_maker() as session:
             try:
                 categories = await CategoryDAO.find_all(session)
@@ -24,8 +24,9 @@ class CategoryService:
         async with async_session_maker() as session:
             try:
                 await CategoryDAO.add(session, category)
-                logger.success(f"Successfully added {category.name}")
+                logger.success(f"Successfully added {category.title}")
+                await session.commit()
             except Exception as e:
-                msg = f"Cannot add {category.name}: {str(e)}"
+                msg = f"Cannot add {category.title}: {str(e)}"
                 logger.error(msg)
                 raise CannotAddCategory(msg)
