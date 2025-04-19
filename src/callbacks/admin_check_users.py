@@ -52,26 +52,26 @@ async def show_user_details(callback: CallbackQuery, state: FSMContext):
 )
 async def handle_users_pagination(callback: CallbackQuery, state: FSMContext):
     """Обработчик пагинации списка пользователей"""
-    admin_users_pagination = await state.get_value("admin_users_pagination")
+    pagination = await state.get_value("admin_users_pagination")
     users = await state.get_value("users")
 
     action = callback.data.split(":")[1]
 
     if action in ("prev", "next"):
-        old_page = admin_users_pagination.current_page
-        new_page = await admin_users_pagination.process_callback(callback.data)
+        old_page = pagination.current_page
+        new_page = await pagination.process_callback(callback.data)
 
         # Если страница не изменилась - просто выходим
         if old_page == new_page:
             await callback.answer()
             return
 
-        keyboard = await admin_users_pagination.get_page_keyboard(
+        keyboard = await pagination.get_page_keyboard(
             prefix="users",
             additional_buttons=[InlineKeyboardButton(text="Главное меню", callback_data="back_to_main_menu")],
         )
 
-        await state.update_data(admin_users_pagination=admin_users_pagination)
+        await state.update_data(admin_users_pagination=pagination)
 
         try:
             await callback.message.edit_text(

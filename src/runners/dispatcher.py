@@ -4,7 +4,7 @@ from src.callbacks.admin_add_category import admin_add_category
 from src.callbacks.admin_add_product import admin_add_product
 from src.callbacks.admin_check_users import router as admin_check_users
 from src.callbacks.admin_show_categories import admin_show_categories
-from src.callbacks.admin_show_products import admin_show_products
+from src.callbacks.admin_show_products import router as admin_show_products
 from src.handlers.admin_commands import admin_command_router
 from src.handlers.start import start_router
 
