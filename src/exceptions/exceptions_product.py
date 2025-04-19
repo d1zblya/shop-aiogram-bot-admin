@@ -4,3 +4,7 @@ class CannotFindAllProducts(Exception):
 
 class CannotAddProduct(Exception):
     pass
+
+
+class CannotDeleteProduct(Exception):
+    pass

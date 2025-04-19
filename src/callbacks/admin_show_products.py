@@ -11,6 +11,8 @@ from src.schemas.product import Product
 from src.schemas.user import User
 import re
 
+from src.services.service_product import ProductService
+
 
 def _is_valid_uuid(uuid_str: str) -> bool:
     """Проверяет, является ли строка валидным UUID"""
@@ -49,7 +51,11 @@ async def show_product_details(callback: CallbackQuery, state: FSMContext):
         return
 
     keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_products_list")]]
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔴Удалить товар",
+                                  callback_data=f"delete:product:{callback.data.split(":")[1]}")],
+            [InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_products_list")]
+        ]
     )
 
     await callback.message.edit_text(
@@ -99,6 +105,22 @@ async def handle_products_pagination(callback: CallbackQuery, state: FSMContext)
             raise
 
     await callback.answer()
+
+
+@router.callback_query(F.data.startswith("delete:product"))
+async def delete_product(callback: CallbackQuery, state: FSMContext):
+    product = await ProductService.delete_product(callback.data.split(":")[-1])
+    if product:
+        await callback.answer(f"Вы успешно удалили этот товар")
+
+        products = await ProductService.get_all_products()
+        await state.update_data(products=products)
+
+        pagination = await state.get_value("admin_products_pagination")
+        pagination.data = products
+        await state.update_data(admin_products_pagination=pagination)
+
+        await return_to_products_list(callback=callback, state=state)
 
 
 @router.callback_query(F.data == "back_to_products_list")

@@ -7,10 +7,10 @@ from src.keyboards.inline import admin_main_kb
 from src.schemas.user import User
 from src.services.service_user import UserService
 
-start_router = Router(name="Start router")
+router = Router(name="Start router")
 
 
-@start_router.message(CommandStart(), IsAdmin())
+@router.message(CommandStart(), IsAdmin())
 async def start_admin_handler(message: Message, is_edited: bool = False) -> None:
     """Обработчик команды /start для администратора"""
     if is_edited:
@@ -26,7 +26,7 @@ async def start_admin_handler(message: Message, is_edited: bool = False) -> None
     )
 
 
-@start_router.message(CommandStart())
+@router.message(CommandStart())
 async def start_user_handler(message: Message):
     await UserService.register_new_user(
         User(
@@ -38,6 +38,6 @@ async def start_user_handler(message: Message):
     await message.answer(text=f"Привет, {message.from_user.first_name}!")
 
 
-@start_router.callback_query(F.data == "back_to_main_menu", IsAdmin())
+@router.callback_query(F.data == "back_to_main_menu", IsAdmin())
 async def back_to_main_menu_callback_handler(callback: CallbackQuery):
     await start_admin_handler(callback.message, is_edited=True)
