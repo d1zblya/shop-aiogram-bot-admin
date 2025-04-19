@@ -2,7 +2,7 @@ from src.database.dao.category_dao import CategoryDAO
 from src.database.session import async_session_maker
 from loguru import logger
 
-from src.exceptions.exceptions_category import CannotFindAllCategories, CannotAddCategory
+from src.exceptions.exceptions_category import CannotFindAllCategories, CannotAddCategory, CannroDeleteCategory
 from src.schemas.category import Category
 
 
@@ -30,3 +30,16 @@ class CategoryService:
                 msg = f"Cannot add {category.title}: {str(e)}"
                 logger.error(msg)
                 raise CannotAddCategory(msg)
+
+    @classmethod
+    async def delete_category(cls, category_id: str):
+        async with async_session_maker() as session:
+            try:
+                await CategoryDAO.delete(session, category_id=category_id)
+                logger.success(f"Successfully deleted {category_id}")
+                await session.commit()
+                return True
+            except Exception as e:
+                msg = f"Cannot delete {category_id}: {str(e)}"
+                logger.error(msg)
+                raise CannroDeleteCategory(msg)
