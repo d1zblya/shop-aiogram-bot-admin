@@ -3,9 +3,15 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.fsm.context import FSMContext
 
+from src.handlers.admin_commands import admin_get_all_users
 from src.schemas.user import User
 
 admin_check_users = Router(name="Admin check users")
+
+
+@admin_check_users.callback_query(F.data == "users")
+async def admin_get_users_before_main_menu(callback: CallbackQuery, state: FSMContext):
+    await admin_get_all_users(message=callback.message, state=state, is_edited=True)
 
 
 @admin_check_users.callback_query(F.data.startswith("users:"), F.data.split(":")[1].isdigit())
@@ -44,6 +50,7 @@ async def show_product_details(callback: CallbackQuery, state: FSMContext):
 )
 async def handle_pagination(callback: CallbackQuery, state: FSMContext):
     admin_users_pagination = await state.get_value("admin_users_pagination")
+    users = await state.get_value("users")
 
     action = callback.data.split(":")[1]
 
@@ -56,13 +63,16 @@ async def handle_pagination(callback: CallbackQuery, state: FSMContext):
             await callback.answer()
             return
 
-        keyboard = await admin_users_pagination.get_page_keyboard(prefix="users")
+        keyboard = await admin_users_pagination.get_page_keyboard(
+            prefix="users",
+            additional_buttons=[InlineKeyboardButton(text="Главное меню", callback_data="back_to_main_menu")],
+        )
 
         await state.update_data(admin_users_pagination=admin_users_pagination)
 
         try:
             await callback.message.edit_text(
-                "👤 Список пользователей:",
+                f"👤 Список пользователей (всего {len(users)}):",
                 reply_markup=keyboard
             )
         except TelegramBadRequest as e:
@@ -77,6 +87,10 @@ async def handle_pagination(callback: CallbackQuery, state: FSMContext):
 @admin_check_users.callback_query(F.data == "back_to_users_list")
 async def back_to_users_list(callback: CallbackQuery, state: FSMContext):
     admin_users_pagination = await state.get_value("admin_users_pagination")
+    users = await state.get_value("users")
 
-    keyboard = await admin_users_pagination.get_page_keyboard(prefix="users")
-    await callback.message.edit_text("👤 Список пользователей:", reply_markup=keyboard)
+    keyboard = await admin_users_pagination.get_page_keyboard(
+        prefix="users",
+        additional_buttons=[InlineKeyboardButton(text="Главное меню", callback_data="back_to_main_menu")],
+    )
+    await callback.message.edit_text(f"👤 Список пользователей (всего {len(users)}):", reply_markup=keyboard)

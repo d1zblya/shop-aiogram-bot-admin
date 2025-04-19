@@ -33,10 +33,6 @@ class Pagination:
                 callback_data=self.item_callback(item, prefix)
             ))
 
-        if additional_buttons:
-            for button in additional_buttons:
-                builder.row(button)
-
         pagination_buttons = []
         if self.current_page > 1:
             pagination_buttons.append(InlineKeyboardButton(
@@ -56,6 +52,10 @@ class Pagination:
             ))
 
         builder.row(*pagination_buttons)
+
+        if additional_buttons:
+            for button in additional_buttons:
+                builder.row(button)
 
         return builder.as_markup()
 
