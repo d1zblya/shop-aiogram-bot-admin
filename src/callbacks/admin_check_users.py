@@ -1,3 +1,5 @@
+from typing import Union
+
 from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
@@ -6,33 +8,33 @@ from aiogram.fsm.context import FSMContext
 from src.handlers.admin_commands import admin_get_all_users
 from src.schemas.user import User
 
-admin_check_users = Router(name="Admin check users")
+router = Router(name="Admin check users")
 
 
-@admin_check_users.callback_query(F.data == "users")
-async def admin_get_users_before_main_menu(callback: CallbackQuery, state: FSMContext):
+async def _get_user_from_state(callback: CallbackQuery, state: FSMContext) -> Union[User, None]:
+    """Получает пользователя из state по ID из callback данных"""
+    user_id = int(callback.data.split(":")[1])
+    users = await state.get_value("users")
+    return next((user for user in users if user.user_id == user_id), None)
+
+
+@router.callback_query(F.data == "users")
+async def handle_users_list_request(callback: CallbackQuery, state: FSMContext):
+    """Обработчик запроса списка пользователей"""
     await admin_get_all_users(message=callback.message, state=state, is_edited=True)
 
 
-@admin_check_users.callback_query(F.data.startswith("users:"), F.data.split(":")[1].isdigit())
-async def show_product_details(callback: CallbackQuery, state: FSMContext):
-    admin_users_pagination = await state.get_value("admin_users_pagination")
-    users = await state.get_value("users")
-
-    user_id = int(callback.data.split(":")[1])
-    user: User = next((user for user in users if user.user_id == user_id), None)
-
+@router.callback_query(F.data.startswith("users:"), F.data.split(":")[1].isdigit())
+async def show_user_details(callback: CallbackQuery, state: FSMContext):
+    """Показывает детали конкретного пользователя"""
+    user = await _get_user_from_state(callback, state)
     if not user:
         await callback.answer("Пользователь не найден!", show_alert=True)
         return
 
-    # Клавиатура с действиями
-    buttons = [
-        [InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_users_list")]
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    await state.update_data(admin_users_pagination=admin_users_pagination)
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="⬅️ Назад", callback_data="back_to_users_list")]]
+    )
 
     await callback.message.edit_text(
         f"<b>{user.first_name}</b>\n\n"
@@ -44,11 +46,12 @@ async def show_product_details(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-@admin_check_users.callback_query(
+@router.callback_query(
     F.data.startswith("users:"),
     lambda query: query.data.split(":")[1] in ("prev", "next")
 )
-async def handle_pagination(callback: CallbackQuery, state: FSMContext):
+async def handle_users_pagination(callback: CallbackQuery, state: FSMContext):
+    """Обработчик пагинации списка пользователей"""
     admin_users_pagination = await state.get_value("admin_users_pagination")
     users = await state.get_value("users")
 
@@ -84,8 +87,9 @@ async def handle_pagination(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
 
 
-@admin_check_users.callback_query(F.data == "back_to_users_list")
-async def back_to_users_list(callback: CallbackQuery, state: FSMContext):
+@router.callback_query(F.data == "back_to_users_list")
+async def return_to_users_list(callback: CallbackQuery, state: FSMContext):
+    """Возврат к списку пользователей"""
     admin_users_pagination = await state.get_value("admin_users_pagination")
     users = await state.get_value("users")
 

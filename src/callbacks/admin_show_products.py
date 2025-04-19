@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from aiogram import Router, F
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
@@ -9,9 +11,13 @@ from src.schemas.user import User
 import re
 
 
-def is_uuid(uuid_str: str) -> bool:
-    pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    return bool(re.fullmatch(pattern, uuid_str, flags=re.IGNORECASE))
+def _is_valid_uuid(uuid_str: str) -> bool:
+    """Проверяет, является ли строка валидным UUID."""
+    try:
+        UUID(uuid_str)
+        return True
+    except ValueError:
+        return False
 
 
 admin_show_products = Router(name="Admin show products")
@@ -24,7 +30,7 @@ async def admin_get_products_before_main_menu(callback: CallbackQuery, state: FS
 
 @admin_show_products.callback_query(
     F.data.startswith("products:"),
-    lambda query: is_uuid(query.data.split(":")[1])  # Проверяем вторую часть на UUID
+    lambda query: _is_valid_uuid(query.data.split(":")[1])
 )
 async def show_product_details(callback: CallbackQuery, state: FSMContext):
     admin_products_pagination = await state.get_value("admin_products_pagination")
